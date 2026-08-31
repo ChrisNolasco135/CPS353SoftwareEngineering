@@ -193,5 +193,12 @@
       <!-- The check is suppressed in the next line of code after the comment -->
       <property name="influenceFormat" value="1"/>
     </module>
+      <!-- Added feature: Does not allow white space before tokens -->
+    <module name="NoWhitespaceBefore">
+      <property name="tokens"
+               value="COMMA, SEMI, POST_INC, POST_DEC, DOT,
+                    LABELED_STAT, METHOD_REF, ELLIPSIS"/>
+      <property name="allowLineBreaks" value="true"/>
+    </module>
   </module>
 </module>

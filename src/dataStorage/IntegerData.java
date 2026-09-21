@@ -1,4 +1,4 @@
-package dataStorage;
+package datastorage;
 
 public interface IntegerData {
 

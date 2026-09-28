@@ -1,5 +1,3 @@
-package datastorage;
-
 import project.annotations.ProcessAPIPrototype;
 
 public class StorageComputePrototype {

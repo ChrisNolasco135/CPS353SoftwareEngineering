@@ -1,5 +1,3 @@
-package user;
-
 public interface UserComputeRequest {
 
     DataSource getSource();

@@ -1,5 +1,3 @@
-package compute;
-
 import project.annotations.ConceptualAPIPrototype;
 
 public class ComputationPrototype {

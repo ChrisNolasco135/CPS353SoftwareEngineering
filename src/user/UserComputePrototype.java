@@ -1,5 +1,6 @@
-import project.annotations.NetworkAPIPrototype;
+package user;
 
+import project.annotations.NetworkAPIPrototype;
 
 public class UserComputePrototype {
 

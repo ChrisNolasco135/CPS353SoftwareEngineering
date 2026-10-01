@@ -1,6 +1,6 @@
 package compute;
 
-import dataStorage.IntegerData;
+import datastorage.IntegerData;
 
 public interface ComputationRequest {
 

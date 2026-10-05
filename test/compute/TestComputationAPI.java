@@ -1,10 +1,8 @@
 package compute;
 
-import datastorage.IntegerData;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 public class TestComputationAPI {
 

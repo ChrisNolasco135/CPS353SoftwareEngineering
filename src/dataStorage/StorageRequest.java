@@ -1,6 +1,10 @@
 package datastorage;
+import user.DataDestination;
+import user.DataSource;
 
 public interface StorageRequest {
 
-    IntegerData getData();
+    DataDestination getDestination();
+
+    DataSource getSource();
 }

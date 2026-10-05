@@ -1,6 +1,8 @@
 package compute;
 
 import project.annotations.ConceptualAPIPrototype;
+import datastorage.IntegerData;
+import datastorage.DataValue;
 
 public class ComputationPrototype {
 

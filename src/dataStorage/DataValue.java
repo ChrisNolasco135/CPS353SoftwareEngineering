@@ -1,6 +1,8 @@
 package datastorage;
 
+import java.math.BigInteger;
+
 public interface DataValue {
 
-    boolean isPrime();
+    BigInteger getValue();
 }

@@ -52,31 +52,42 @@ public class JobHandler implements UserComputeAPI {
             }
         };
 
-        // Reader
-        IntegerData data = storageAPI.read(storageRequest);
+        // Reader and computation loop
+        ComputationResult lastResult = null;
 
-        if (data == null) {
-            throw new IllegalArgumentException("No data was read");
+        while (true) {
+            IntegerData data = storageAPI.read(storageRequest);
+
+            // End of input
+            if (data == null) {
+                break;
+            }
+
+            ComputationRequest computationRequest =
+                    new ComputationRequest() {
+                        @Override
+                        public IntegerData getData() {
+                            return data;
+                        }
+                    };
+
+            ComputationResult result =
+                    computationAPI.compute(computationRequest);
+
+            if (result == null) {
+                throw new IllegalStateException(
+                        "Computation returned a null result");
+            }
+
+            storageAPI.write(storageRequest, result);
+            lastResult = result;
         }
 
-        // Create ComputationRequest
-        ComputationRequest computationRequest =
-                new ComputationRequest() {
+        if (lastResult == null) {
+            throw new IllegalArgumentException("No input data was provided");
+        }
 
-                    @Override
-                    public IntegerData getData() {
-                        return data;
-                    }
-                };
+        return new UserComputeResponse(lastResult.isPrime());
 
-        // Computation
-        ComputationResult result =
-                computationAPI.compute(computationRequest);
-
-        // Writer
-        storageAPI.write(storageRequest, result);
-
-        // Return result to user
-        return new UserComputeResponse(result.isPrime());
     }
 }

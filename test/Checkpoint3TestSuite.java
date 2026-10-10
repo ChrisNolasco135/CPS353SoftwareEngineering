@@ -1,4 +1,3 @@
-package project.checkpointtests;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;

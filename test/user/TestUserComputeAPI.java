@@ -1,25 +1,24 @@
 package user;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import compute.ComputationAPI;
-import compute.ComputationResult;
 import compute.ComputationRequest;
+import compute.ComputationResult;
 import compute.JobHandler;
 import datastorage.DataValue;
+import datastorage.InMemoryDataDestination;
+import datastorage.InMemoryDataSource;
 import datastorage.IntegerData;
 import datastorage.StorageComputeAPI;
 import datastorage.StorageRequest;
-import datastorage.InMemoryDataSource;
-import datastorage.InMemoryDataDestination;
 
 public class TestUserComputeAPI {
 
@@ -32,8 +31,8 @@ public class TestUserComputeAPI {
         DataValue value = mock(DataValue.class);
 
         when(storageAPI.read(
-                org.mockito.ArgumentMatchers.any(StorageRequest.class)))
-                .thenReturn(data);
+        org.mockito.ArgumentMatchers.any(StorageRequest.class)))
+            .thenReturn(data, (IntegerData) null);
         when(data.getValues()).thenReturn(value);
         when(value.getValue()).thenReturn(BigInteger.valueOf(7));
 

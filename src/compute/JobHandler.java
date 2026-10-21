@@ -9,6 +9,7 @@ import user.UserComputeAPI;
 import user.UserComputeRequest;
 import user.UserComputeResponse;
 
+
 public class JobHandler implements UserComputeAPI {
 
     private final StorageComputeAPI storageAPI;
@@ -53,30 +54,24 @@ public class JobHandler implements UserComputeAPI {
         };
 
         // Reader
-        IntegerData data = storageAPI.read(storageRequest);
+        
+IntegerData data = storageAPI.read(storageRequest);
 
-        if (data == null) {
-            throw new IllegalArgumentException("No data was read");
-        }
+boolean lastResult = false;
 
-        // Create ComputationRequest
-        ComputationRequest computationRequest =
-                new ComputationRequest() {
+for (datastorage.DataValue value : data.getAllValues()) {
+    IntegerData singleValueData = () -> value;
 
-                    @Override
-                    public IntegerData getData() {
-                        return data;
-                    }
-                };
+    ComputationRequest computationRequest =
+            () -> singleValueData;
 
-        // Computation
-        ComputationResult result =
-                computationAPI.compute(computationRequest);
+    ComputationResult result =
+            computationAPI.compute(computationRequest);
 
-        // Writer
-        storageAPI.write(storageRequest, result);
+    storageAPI.write(storageRequest, result);
+    lastResult = result.isPrime();
+}
 
-        // Return result to user
-        return new UserComputeResponse(result.isPrime());
-    }
+        return new UserComputeResponse(lastResult);
+    }  
 }

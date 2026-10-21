@@ -7,4 +7,5 @@ public interface StorageRequest {
     DataDestination getDestination();
 
     DataSource getSource();
+    
 }

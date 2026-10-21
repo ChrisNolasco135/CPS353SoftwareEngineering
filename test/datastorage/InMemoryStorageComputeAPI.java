@@ -1,17 +1,12 @@
+
 package datastorage;
 
 import java.math.BigInteger;
-import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Map;
 
 import compute.ComputationResult;
-import user.DataSource;
 
 public class InMemoryStorageComputeAPI implements StorageComputeAPI {
-
-    private final Map<DataSource, Integer> readPositions =
-            new IdentityHashMap<>();
 
     @Override
     public IntegerData read(StorageRequest request) {
@@ -20,32 +15,50 @@ public class InMemoryStorageComputeAPI implements StorageComputeAPI {
 
         List<Integer> input = source.getInput();
 
-        int index = readPositions.getOrDefault(source, 0);
-
-        // No more input numbers
-        if (index >= input.size()) {
-            return null;
+        if (input == null || input.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Input list cannot be null or empty");
         }
 
-        readPositions.put(source, index + 1);
-
-        BigInteger number = BigInteger.valueOf(input.get(index));
-
         return new IntegerData() {
+
             @Override
             public DataValue getValues() {
-                return new DataValue() {
-                    @Override
-                    public BigInteger getValue() {
-                        return number;
-                    }
-                };
+                return createDataValue(input.get(0));
+            }
+
+            @Override
+            public List<DataValue> getAllValues() {
+                return input.stream()
+                        .map(InMemoryStorageComputeAPI.this::createDataValue)
+                        .toList();
+            }
+        };
+    }
+
+    public List<Integer> readAll(StorageRequest request) {
+        InMemoryDataSource source =
+                (InMemoryDataSource) request.getSource();
+
+        return source.getInput();
+    }
+
+    private DataValue createDataValue(int value) {
+        BigInteger number = BigInteger.valueOf(value);
+
+        return new DataValue() {
+            @Override
+            public BigInteger getValue() {
+                return number;
             }
         };
     }
 
     @Override
-    public void write(StorageRequest request, ComputationResult result) {
+    public void write(
+            StorageRequest request,
+            ComputationResult result) {
+
         InMemoryDataDestination destination =
                 (InMemoryDataDestination) request.getDestination();
 

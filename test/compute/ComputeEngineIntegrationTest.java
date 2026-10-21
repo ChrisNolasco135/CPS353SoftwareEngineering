@@ -68,7 +68,7 @@ public class ComputeEngineIntegrationTest {
 
                     @Override
                     public boolean useDefaultDelimiter() {
-                        return true;
+                        return false;
                     }
                 };
 

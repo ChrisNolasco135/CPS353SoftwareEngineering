@@ -1,9 +1,9 @@
+
 package compute;
 
 import java.math.BigInteger;
-
-import datastorage.DataValue;
 import datastorage.IntegerData;
+import datastorage.DataValue;
 
 public class ComputationAPIImplementation implements ComputationAPI {
 
@@ -12,23 +12,11 @@ public class ComputationAPIImplementation implements ComputationAPI {
 
     @Override
     public ComputationResult compute(ComputationRequest request) {
-        if (request == null || request.getData() == null) {
-            throw new IllegalArgumentException(
-                    "Request and data cannot be null");
-        }
-
         IntegerData data = request.getData();
-        DataValue value = data.getValues();
+        DataValue dataValue = data.getValues();
+        BigInteger number = dataValue.getValue();
 
-        if (value == null || value.getValue() == null) {
-            throw new IllegalArgumentException(
-                    "Input number cannot be null");
-        }
-
-        BigInteger number = value.getValue();
-
-        boolean prime = number.compareTo(BigInteger.TWO) >= 0
-                && number.isProbablePrime(100);
+        boolean prime = isPrime(number);
 
         return new ComputationResult() {
             @Override
@@ -36,5 +24,31 @@ public class ComputationAPIImplementation implements ComputationAPI {
                 return prime;
             }
         };
+    }
+
+    private boolean isPrime(BigInteger number) {
+        if (number == null || number.compareTo(BigInteger.TWO) < 0) {
+            return false;
+        }
+
+        if (number.equals(BigInteger.TWO)) {
+            return true;
+        }
+
+        if (!number.testBit(0)) {
+            return false;
+        }
+
+        BigInteger divisor = BigInteger.valueOf(3);
+
+        while (divisor.multiply(divisor).compareTo(number) <= 0) {
+            if (number.remainder(divisor).equals(BigInteger.ZERO)) {
+                return false;
+            }
+
+            divisor = divisor.add(BigInteger.TWO);
+        }
+
+        return true;
     }
 }

@@ -9,6 +9,7 @@ import user.UserComputeAPI;
 import user.UserComputeRequest;
 import user.UserComputeResponse;
 
+
 public class JobHandler implements UserComputeAPI {
 
     private final StorageComputeAPI storageAPI;
@@ -52,42 +53,25 @@ public class JobHandler implements UserComputeAPI {
             }
         };
 
-        // Reader and computation loop
-        ComputationResult lastResult = null;
+        // Reader
+        
+IntegerData data = storageAPI.read(storageRequest);
 
-        while (true) {
-            IntegerData data = storageAPI.read(storageRequest);
+boolean lastResult = false;
 
-            // End of input
-            if (data == null) {
-                break;
-            }
+for (datastorage.DataValue value : data.getAllValues()) {
+    IntegerData singleValueData = () -> value;
 
-            ComputationRequest computationRequest =
-                    new ComputationRequest() {
-                        @Override
-                        public IntegerData getData() {
-                            return data;
-                        }
-                    };
+    ComputationRequest computationRequest =
+            () -> singleValueData;
 
-            ComputationResult result =
-                    computationAPI.compute(computationRequest);
+    ComputationResult result =
+            computationAPI.compute(computationRequest);
 
-            if (result == null) {
-                throw new IllegalStateException(
-                        "Computation returned a null result");
-            }
+    storageAPI.write(storageRequest, result);
+    lastResult = result.isPrime();
+}
 
-            storageAPI.write(storageRequest, result);
-            lastResult = result;
-        }
-
-        if (lastResult == null) {
-            throw new IllegalArgumentException("No input data was provided");
-        }
-
-        return new UserComputeResponse(lastResult.isPrime());
-
-    }
+        return new UserComputeResponse(lastResult);
+    }  
 }

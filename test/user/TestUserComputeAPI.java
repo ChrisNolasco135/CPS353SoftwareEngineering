@@ -1,12 +1,17 @@
+
 package user;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import compute.ComputationAPI;
@@ -14,8 +19,6 @@ import compute.ComputationRequest;
 import compute.ComputationResult;
 import compute.JobHandler;
 import datastorage.DataValue;
-import datastorage.InMemoryDataDestination;
-import datastorage.InMemoryDataSource;
 import datastorage.IntegerData;
 import datastorage.StorageComputeAPI;
 import datastorage.StorageRequest;
@@ -24,56 +27,68 @@ public class TestUserComputeAPI {
 
     @Test
     public void testCompute() {
-        StorageComputeAPI storageAPI = mock(StorageComputeAPI.class);
-        ComputationAPI computationAPI = mock(ComputationAPI.class);
 
-        IntegerData data = mock(IntegerData.class);
-        DataValue value = mock(DataValue.class);
+        // Mock the APIs that JobHandler depends on.
+        StorageComputeAPI storageAPI =
+                mock(StorageComputeAPI.class);
 
-        when(storageAPI.read(
-        org.mockito.ArgumentMatchers.any(StorageRequest.class)))
-            .thenReturn(data, (IntegerData) null);
-        when(data.getValues()).thenReturn(value);
-        when(value.getValue()).thenReturn(BigInteger.valueOf(7));
+        ComputationAPI computationAPI =
+                mock(ComputationAPI.class);
 
-        ComputationResult result = mock(ComputationResult.class);
-        when(result.isPrime()).thenReturn(true);
-        when(computationAPI.compute(
-                org.mockito.ArgumentMatchers.any(ComputationRequest.class)))
-                .thenReturn(result);
+        // Provide a valid source and destination.
+        DataSource source = mock(DataSource.class);
+        DataDestination destination =
+                mock(DataDestination.class);
 
+        UserComputeRequest request =
+                mock(UserComputeRequest.class);
+
+        when(request.getSource()).thenReturn(source);
+        when(request.getDestination()).thenReturn(destination);
+
+        // Configure the storage API to return input data.
+        IntegerData integerData = mock(IntegerData.class);
+        DataValue dataValue = mock(DataValue.class);
+
+        when(storageAPI.read(any(StorageRequest.class)))
+                .thenReturn(integerData);
+
+        when(integerData.getValues()).thenReturn(dataValue);
+
+        when(integerData.getAllValues())
+                .thenReturn(Collections.singletonList(dataValue));
+
+        when(dataValue.getValue())
+                .thenReturn(BigInteger.valueOf(59));
+
+        // Configure the computation API to return true.
+        ComputationResult computationResult =
+                mock(ComputationResult.class);
+
+        when(computationResult.isPrime()).thenReturn(true);
+
+        when(computationAPI.compute(any(ComputationRequest.class)))
+                .thenReturn(computationResult);
+
+        // Instantiate the coordination component.
         UserComputeAPI userComputeAPI =
                 new JobHandler(storageAPI, computationAPI);
 
-        InMemoryDataSource source =
-                new InMemoryDataSource(Arrays.asList(7));
-        InMemoryDataDestination destination =
-                new InMemoryDataDestination(new ArrayList<>());
+        // Execute the computation.
+        UserComputeResponse response =
+                userComputeAPI.compute(request);
 
-        UserComputeRequest request = new UserComputeRequest() {
-            @Override
-            public DataSource getSource() {
-                return source;
-            }
-
-            @Override
-            public DataDestination getDestination() {
-                return destination;
-            }
-
-            @Override
-            public String getDelimiter() {
-                return null;
-            }
-
-            @Override
-            public boolean useDefaultDelimiter() {
-                return true;
-            }
-        };
-
-        UserComputeResponse response = userComputeAPI.compute(request);
-
+        // Verify the result and component interactions.
         assertNotNull(response);
+        assertTrue(response.isPrime());
+
+        verify(storageAPI).read(any(StorageRequest.class));
+
+        verify(computationAPI)
+                .compute(any(ComputationRequest.class));
+
+        verify(storageAPI).write(
+                any(StorageRequest.class),
+                eq(computationResult));
     }
 }

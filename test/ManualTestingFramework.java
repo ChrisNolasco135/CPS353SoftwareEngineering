@@ -51,12 +51,18 @@ public class ManualTestingFramework {
             }
         };
 
+        
         // Execute the computation.
         UserComputeResponse response = userAPI.compute(request);
 
-        System.out.println(
-                "Prime result: " + response.isPrime());
-        System.out.println(
-                "Output written to: " + OUTPUT);
+        if (response.isSuccessful()) {
+            System.out.println(
+                    "Prime result: " + response.isPrime());
+            System.out.println(
+                    "Output written to: " + OUTPUT);
+        } else {
+            System.out.println(
+                    "Computation failed: " + response.getErrorMessage());
+        }
     }
 }

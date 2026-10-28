@@ -2,6 +2,8 @@
 package compute;
 
 import java.math.BigInteger;
+import java.util.Objects;
+
 import datastorage.IntegerData;
 import datastorage.DataValue;
 
@@ -12,9 +14,21 @@ public class ComputationAPIImplementation implements ComputationAPI {
 
     @Override
     public ComputationResult compute(ComputationRequest request) {
-        IntegerData data = request.getData();
-        DataValue dataValue = data.getValues();
-        BigInteger number = dataValue.getValue();
+        // Validate the request.
+        Objects.requireNonNull(
+                request, "Computation request cannot be null");
+
+        // Validate the input data.
+        IntegerData data = Objects.requireNonNull(
+                request.getData(), "Input data cannot be null");
+
+        // Validate the data value.
+        DataValue dataValue = Objects.requireNonNull(
+                data.getValues(), "Data value cannot be null");
+
+        // Validate the integer.
+        BigInteger number = Objects.requireNonNull(
+                dataValue.getValue(), "Integer value cannot be null");
 
         boolean prime = isPrime(number);
 
@@ -27,7 +41,9 @@ public class ComputationAPIImplementation implements ComputationAPI {
     }
 
     private boolean isPrime(BigInteger number) {
-        if (number == null || number.compareTo(BigInteger.TWO) < 0) {
+        // Every non-null BigInteger is a valid candidate.
+        // Negative numbers, zero, and one are valid inputs but are not prime.
+        if (number.compareTo(BigInteger.TWO) < 0) {
             return false;
         }
 

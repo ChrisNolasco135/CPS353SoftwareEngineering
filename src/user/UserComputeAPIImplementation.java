@@ -1,6 +1,8 @@
 
 package user;
 
+import java.util.Objects;
+
 import compute.ComputationAPI;
 import compute.ComputationRequest;
 import compute.ComputationResult;
@@ -16,29 +18,44 @@ public class UserComputeAPIImplementation implements UserComputeAPI {
     public UserComputeAPIImplementation(
             StorageComputeAPI storageAPI,
             ComputationAPI computationAPI) {
-        this.storageAPI = storageAPI;
-        this.computationAPI = computationAPI;
+
+        this.storageAPI = Objects.requireNonNull(
+                storageAPI, "Storage API cannot be null");
+
+        this.computationAPI = Objects.requireNonNull(
+                computationAPI, "Computation API cannot be null");
     }
 
-    @Override
-    public UserComputeResponse compute(UserComputeRequest request) {
-        // Create a storage request using the user's source and destination.
+    
+@Override
+public UserComputeResponse compute(UserComputeRequest request) {
+    try {
+        Objects.requireNonNull(
+                request, "User computation request cannot be null");
+
+        DataSource source = Objects.requireNonNull(
+                request.getSource(), "Data source cannot be null");
+
+        DataDestination destination = Objects.requireNonNull(
+                request.getDestination(),
+                "Data destination cannot be null");
+
         StorageRequest storageRequest = new StorageRequest() {
             @Override
             public DataSource getSource() {
-                return request.getSource();
+                return source;
             }
 
             @Override
             public DataDestination getDestination() {
-                return request.getDestination();
+                return destination;
             }
         };
 
-        // Read the input integer from the data storage component.
-        IntegerData inputData = storageAPI.read(storageRequest);
+        IntegerData inputData = Objects.requireNonNull(
+                storageAPI.read(storageRequest),
+                "Storage API returned null input data");
 
-        // Create a computation request containing the input data.
         ComputationRequest computationRequest = new ComputationRequest() {
             @Override
             public IntegerData getData() {
@@ -46,14 +63,25 @@ public class UserComputeAPIImplementation implements UserComputeAPI {
             }
         };
 
-        // Calculate whether the integer is prime.
-        ComputationResult result =
-                computationAPI.compute(computationRequest);
+        ComputationResult result = Objects.requireNonNull(
+                computationAPI.compute(computationRequest),
+                "Computation API returned a null result");
 
-        // Write the computation result to the user's destination.
         storageAPI.write(storageRequest, result);
 
-        // Return the result to the user.
         return new UserComputeResponse(result.isPrime());
+
+    } catch (Exception exception) {
+        // Translate checked and unchecked exceptions into an API error.
+        String message = exception.getMessage();
+
+        if (message == null || message.isBlank()) {
+            message = "An unexpected error occurred";
+        }
+
+        return new UserComputeResponse(
+                exception.getClass().getSimpleName() + ": " + message);
     }
+}
+
 }

@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import compute.ComputationResult;
 import user.DataDestination;
@@ -19,8 +20,31 @@ public class StorageComputeAPIImplementation
 
     @Override
     public IntegerData read(StorageRequest request) {
-        DataSource source = request.getSource();
-        Path inputPath = Path.of(source.getIdentifier());
+        Objects.requireNonNull(
+                request, "Storage request cannot be null");
+
+        DataSource source = Objects.requireNonNull(
+                request.getSource(), "Data source cannot be null");
+
+        String identifier = Objects.requireNonNull(
+                source.getIdentifier(), "Input file identifier cannot be null");
+
+        if (identifier.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Input file identifier cannot be blank");
+        }
+
+        Path inputPath = Path.of(identifier);
+
+        if (!Files.isRegularFile(inputPath)) {
+            throw new IllegalArgumentException(
+                    "Input path is not a regular file: " + inputPath);
+        }
+
+        if (!Files.isReadable(inputPath)) {
+            throw new IllegalArgumentException(
+                    "Input file is not readable: " + inputPath);
+        }
 
         try {
             List<String> lines = Files.readAllLines(inputPath);
@@ -33,7 +57,21 @@ public class StorageComputeAPIImplementation
                     String[] values = trimmedLine.split(",");
 
                     for (String value : values) {
-                        numbers.add(new BigInteger(value.trim()));
+                        String trimmedValue = value.trim();
+
+                        if (trimmedValue.isEmpty()) {
+                            throw new IllegalArgumentException(
+                                    "Input file contains an empty value");
+                        }
+
+                        try {
+                            numbers.add(new BigInteger(trimmedValue));
+                        } catch (NumberFormatException exception) {
+                            throw new IllegalArgumentException(
+                                    "Invalid integer in input file: "
+                                            + trimmedValue,
+                                    exception);
+                        }
                     }
                 }
             }
@@ -81,20 +119,44 @@ public class StorageComputeAPIImplementation
 
     @Override
     public void write(StorageRequest request, ComputationResult result) {
-        DataDestination destination = request.getDestination();
+        Objects.requireNonNull(
+                request, "Storage request cannot be null");
+
+        DataDestination destination = Objects.requireNonNull(
+                request.getDestination(),
+                "Data destination cannot be null");
+
+        String identifier = Objects.requireNonNull(
+                destination.getIdentifier(),
+                "Output file identifier cannot be null");
+
+        if (identifier.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Output file identifier cannot be blank");
+        }
+
+        Objects.requireNonNull(
+                result, "Computation result cannot be null");
+
+        Path outputPath = Path.of(identifier);
+
+        // Validate the destination's parent directory if one is specified.
+        Path parent = outputPath.toAbsolutePath().getParent();
+
+        if (parent != null && !Files.isDirectory(parent)) {
+            throw new IllegalArgumentException(
+                    "Output directory does not exist: " + parent);
+        }
 
         outputResults.add(Boolean.toString(result.isPrime()));
 
-        // Write all results as a single comma-separated line.
         String output = String.join(",", outputResults);
 
         try {
-            Files.writeString(
-                    Path.of(destination.getIdentifier()),
-                    output);
+            Files.writeString(outputPath, output);
         } catch (IOException exception) {
             throw new RuntimeException(
-                    "Failed to write output file",
+                    "Failed to write output file: " + outputPath,
                     exception);
         }
     }

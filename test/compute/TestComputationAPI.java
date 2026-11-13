@@ -11,14 +11,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import datastorage.DataValue;
+import datastorage.InMemoryStorageComputeAPI;
 import datastorage.IntegerData;
 
 public class TestComputationAPI {
 
     @Test
     public void testCompute() {
+
         ComputationAPI computationAPI =
-                new ComputationAPIImplementation();
+                new ComputationAPIImplementation(
+                        new InMemoryStorageComputeAPI());
 
         ComputationRequest request =
                 mock(ComputationRequest.class);
@@ -28,7 +31,8 @@ public class TestComputationAPI {
 
         when(request.getData()).thenReturn(integerData);
         when(integerData.getValues()).thenReturn(dataValue);
-        when(dataValue.getValue()).thenReturn(BigInteger.valueOf(59));
+        when(dataValue.getValue())
+                .thenReturn(BigInteger.valueOf(59));
 
         ComputationResult result =
                 computationAPI.compute(request);
@@ -36,12 +40,13 @@ public class TestComputationAPI {
         assertNotNull(result);
         assertTrue(result.isPrime());
     }
-    
-        @Test
-        public void testOneIsNotPrime() {
+
+    @Test
+    public void testOneIsNotPrime() {
 
         ComputationAPI computationAPI =
-                new ComputationAPIImplementation();
+                new ComputationAPIImplementation(
+                        new InMemoryStorageComputeAPI());
 
         ComputationRequest request =
                 mock(ComputationRequest.class);
@@ -51,13 +56,13 @@ public class TestComputationAPI {
 
         when(request.getData()).thenReturn(integerData);
         when(integerData.getValues()).thenReturn(dataValue);
-        when(dataValue.getValue()).thenReturn(BigInteger.ONE);
+        when(dataValue.getValue())
+                .thenReturn(BigInteger.ONE);
 
         ComputationResult result =
                 computationAPI.compute(request);
 
         assertNotNull(result);
         assertFalse(result.isPrime());
-        }
-
+    }
 }

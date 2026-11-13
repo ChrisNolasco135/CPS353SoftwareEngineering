@@ -10,40 +10,67 @@ public class InMemoryStorageComputeAPI implements StorageComputeAPI {
 
     @Override
     public IntegerData read(StorageRequest request) {
-        InMemoryDataSource source =
-                (InMemoryDataSource) request.getSource();
 
-        List<Integer> input = source.getInput();
+        try {
+            // Validate the request.
+            if (request == null) {
+                return null;
+            }
 
-        if (input == null || input.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Input list cannot be null or empty");
+            if (!(request.getSource() instanceof InMemoryDataSource source)) {
+                return null;
+            }
+
+            List<Integer> input = source.getInput();
+
+            if (input == null || input.isEmpty()) {
+                return null;
+            }
+
+            // Return the input data.
+            return new IntegerData() {
+
+                @Override
+                public DataValue getValues() {
+                    return createDataValue(input.get(0));
+                }
+
+                @Override
+                public List<DataValue> getAllValues() {
+                    return input.stream()
+                            .map(InMemoryStorageComputeAPI.this::createDataValue)
+                            .toList();
+                }
+            };
+
+        } catch (Exception exception) {
+
+            // Process boundary: return failure sentinel.
+            return null;
         }
-
-        return new IntegerData() {
-
-            @Override
-            public DataValue getValues() {
-                return createDataValue(input.get(0));
-            }
-
-            @Override
-            public List<DataValue> getAllValues() {
-                return input.stream()
-                        .map(InMemoryStorageComputeAPI.this::createDataValue)
-                        .toList();
-            }
-        };
     }
 
     public List<Integer> readAll(StorageRequest request) {
-        InMemoryDataSource source =
-                (InMemoryDataSource) request.getSource();
 
-        return source.getInput();
+        try {
+            if (request == null) {
+                return null;
+            }
+
+            if (!(request.getSource() instanceof InMemoryDataSource source)) {
+                return null;
+            }
+
+            return source.getInput();
+
+        } catch (Exception exception) {
+
+            return null;
+        }
     }
 
     private DataValue createDataValue(int value) {
+
         BigInteger number = BigInteger.valueOf(value);
 
         return new DataValue() {
@@ -55,14 +82,35 @@ public class InMemoryStorageComputeAPI implements StorageComputeAPI {
     }
 
     @Override
-    public void write(
+    public boolean write(
             StorageRequest request,
             ComputationResult result) {
 
-        InMemoryDataDestination destination =
-                (InMemoryDataDestination) request.getDestination();
+        try {
+            // Validate the request.
+            if (request == null || result == null) {
+                return false;
+            }
 
-        destination.getOutput().add(
-                Boolean.toString(result.isPrime()));
+            if (!(request.getDestination()
+                    instanceof InMemoryDataDestination destination)) {
+                return false;
+            }
+
+            if (destination.getOutput() == null) {
+                return false;
+            }
+
+            // Store the computation result.
+            destination.getOutput().add(
+                    Boolean.toString(result.isPrime()));
+
+            return true;
+
+        } catch (Exception exception) {
+
+            // Process boundary: return failure status.
+            return false;
+        }
     }
 }

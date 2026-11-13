@@ -1,7 +1,5 @@
 
-import compute.ComputationAPI;
 import compute.ComputationAPIImplementation;
-import compute.JobHandler;
 import datastorage.StorageComputeAPI;
 import datastorage.StorageComputeAPIImplementation;
 import user.DataDestination;
@@ -17,17 +15,15 @@ public class ManualTestingFramework {
 
     public static void main(String[] args) {
 
-        // TODO 1: Instantiate real implementations of all three APIs.
-        ComputationAPI computationAPI =
-                new ComputationAPIImplementation();
-
+        // Instantiate the real Storage API.
         StorageComputeAPI storageAPI =
                 new StorageComputeAPIImplementation();
 
+        // Instantiate the combined Conceptual API and Network API.
         UserComputeAPI userAPI =
-                new JobHandler(storageAPI, computationAPI);
+                new ComputationAPIImplementation(storageAPI);
 
-        // TODO 2: Configure the input file, output file, and delimiter.
+        // Configure the input file, output file, and delimiter.
         UserComputeRequest request = new UserComputeRequest() {
 
             @Override
@@ -51,18 +47,22 @@ public class ManualTestingFramework {
             }
         };
 
-        
         // Execute the computation.
         UserComputeResponse response = userAPI.compute(request);
 
         if (response.isSuccessful()) {
+
             System.out.println(
                     "Prime result: " + response.isPrime());
+
             System.out.println(
                     "Output written to: " + OUTPUT);
+
         } else {
+
             System.out.println(
-                    "Computation failed: " + response.getErrorMessage());
+                    "Computation failed: "
+                            + response.getErrorMessage());
         }
     }
 }

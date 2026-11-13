@@ -7,17 +7,13 @@ import java.util.Collections;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
-
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import compute.ComputationAPI;
-import compute.ComputationRequest;
+import compute.ComputationAPIImplementation;
 import compute.ComputationResult;
-import compute.JobHandler;
 import datastorage.DataValue;
 import datastorage.IntegerData;
 import datastorage.StorageComputeAPI;
@@ -28,12 +24,9 @@ public class TestUserComputeAPI {
     @Test
     public void testCompute() {
 
-        // Mock the APIs that JobHandler depends on.
+        // Mock the storage API.
         StorageComputeAPI storageAPI =
                 mock(StorageComputeAPI.class);
-
-        ComputationAPI computationAPI =
-                mock(ComputationAPI.class);
 
         // Provide a valid source and destination.
         DataSource source = mock(DataSource.class);
@@ -46,7 +39,7 @@ public class TestUserComputeAPI {
         when(request.getSource()).thenReturn(source);
         when(request.getDestination()).thenReturn(destination);
 
-        // Configure the storage API to return input data.
+        // Configure storage to return input data.
         IntegerData integerData = mock(IntegerData.class);
         DataValue dataValue = mock(DataValue.class);
 
@@ -61,34 +54,30 @@ public class TestUserComputeAPI {
         when(dataValue.getValue())
                 .thenReturn(BigInteger.valueOf(59));
 
-        // Configure the computation API to return true.
-        ComputationResult computationResult =
-                mock(ComputationResult.class);
+        // Configure successful storage writes.
+        when(storageAPI.write(
+                any(StorageRequest.class),
+                any(ComputationResult.class)))
+                .thenReturn(true);
 
-        when(computationResult.isPrime()).thenReturn(true);
-
-        when(computationAPI.compute(any(ComputationRequest.class)))
-                .thenReturn(computationResult);
-
-        // Instantiate the coordination component.
+        // Instantiate the combined implementation.
         UserComputeAPI userComputeAPI =
-                new JobHandler(storageAPI, computationAPI);
+                new ComputationAPIImplementation(storageAPI);
 
         // Execute the computation.
         UserComputeResponse response =
                 userComputeAPI.compute(request);
 
-        // Verify the result and component interactions.
+        // Verify the result.
         assertNotNull(response);
+        assertTrue(response.isSuccessful());
         assertTrue(response.isPrime());
 
+        // Verify storage interactions.
         verify(storageAPI).read(any(StorageRequest.class));
-
-        verify(computationAPI)
-                .compute(any(ComputationRequest.class));
 
         verify(storageAPI).write(
                 any(StorageRequest.class),
-                eq(computationResult));
+                any(ComputationResult.class));
     }
 }

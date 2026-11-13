@@ -14,10 +14,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import compute.ComputationAPI;
 import compute.ComputationAPIImplementation;
+import compute.MultiThreadedComputationAPIImplementation;
 import datastorage.StorageComputeAPI;
 import datastorage.StorageComputeAPIImplementation;
 import user.UserComputeAPI;
+
 
 public class TestMultiUser {
 
@@ -25,16 +28,22 @@ public class TestMultiUser {
     private UserComputeAPI coordinator;
 
     @BeforeEach
-    public void initializeComputeEngine() {
+	public void initializeComputeEngine() {
 
-        // Instantiate the real Storage API.
-        StorageComputeAPI storageAPI =
-                new StorageComputeAPIImplementation();
+    // Instantiate the real Storage API.
+    StorageComputeAPI storageAPI =
+            new StorageComputeAPIImplementation();
 
-        // Instantiate the combined Network and Conceptual API.
-        coordinator =
-                new ComputationAPIImplementation(storageAPI);
-    }
+    // Instantiate the Conceptual API.
+    ComputationAPI computationAPI =
+            new ComputationAPIImplementation(storageAPI);
+
+    // Instantiate the multi-threaded Network API.
+    coordinator =
+            new MultiThreadedComputationAPIImplementation(
+                    storageAPI,
+                    computationAPI);
+	}	
 
     @Test
     public void compareMultiAndSingleThreaded() throws Exception {

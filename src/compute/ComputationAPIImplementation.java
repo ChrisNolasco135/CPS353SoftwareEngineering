@@ -55,90 +55,14 @@ public class ComputationAPIImplementation
 
     // Network API: Read, compute, and write multiple values.
     @Override
-    public UserComputeResponse compute(UserComputeRequest request) {
+public UserComputeResponse compute(UserComputeRequest request) {
 
-        try {
-            Objects.requireNonNull(
-                    request, "Request cannot be null");
-
-            DataSource source = Objects.requireNonNull(
-                    request.getSource(), "Source cannot be null");
-
-            DataDestination destination = Objects.requireNonNull(
-                    request.getDestination(), "Destination cannot be null");
-
-            StorageRequest storageRequest = new StorageRequest() {
-
-                @Override
-                public DataDestination getDestination() {
-                    return destination;
-                }
-
-                @Override
-                public DataSource getSource() {
-                    return source;
-                }
-            };
-
-            // Read input data.
-            IntegerData data = Objects.requireNonNull(
-                    storageAPI.read(storageRequest),
-                    "Storage API failed to read input data");
-
-            List<DataValue> values = Objects.requireNonNull(
-                    data.getAllValues(),
-                    "Input values cannot be null");
-
-            if (values.isEmpty()) {
-                throw new IllegalArgumentException(
-                        "Input data contains no values");
-            }
-
-            boolean lastResult = false;
-
-            // Process every input value.
-            for (DataValue value : values) {
-
-                Objects.requireNonNull(
-                        value, "Input value cannot be null");
-
-                Objects.requireNonNull(
-                        value.getValue(), "Integer cannot be null");
-
-                IntegerData singleValueData = () -> value;
-
-                ComputationRequest computationRequest =
-                        () -> singleValueData;
-
-                ComputationResult result = compute(computationRequest);
-
-                // Check whether writing succeeded.
-                boolean writeSuccessful =
-                        storageAPI.write(storageRequest, result);
-
-                if (!writeSuccessful) {
-                    throw new IllegalStateException(
-                            "Storage API failed to write output data");
-                }
-
-                lastResult = result.isPrime();
-            }
-
-            return new UserComputeResponse(lastResult);
-
-        } catch (Exception exception) {
-
-            String message = exception.getMessage();
-
-            if (message == null || message.isBlank()) {
-                message = "An unexpected error occurred";
-            }
-
-            return new UserComputeResponse(
-                    exception.getClass().getSimpleName()
-                            + ": " + message);
-        }
-    }
+    return NetworkComputeSupport.compute(
+            request,
+            storageAPI,
+            this,
+            false);
+}
 
     // Prime-number calculation.
     private boolean isPrime(BigInteger number) {

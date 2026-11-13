@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-import compute.ComputationAPI;
 import compute.ComputationAPIImplementation;
 import compute.ComputationResult;
 import datastorage.StorageComputeAPI;
@@ -17,27 +16,29 @@ public class UserComputeExceptionIntegrationTest {
 
     @Test
     public void testStorageExceptionBecomesErrorResponse() {
+
         // Simulate a storage component failure.
         StorageComputeAPI failingStorage = new StorageComputeAPI() {
+
             @Override
             public datastorage.IntegerData read(StorageRequest request) {
-                throw new IllegalStateException("Simulated storage failure");
+                throw new IllegalStateException(
+                        "Simulated storage failure");
             }
 
             @Override
-            public void write(
+            public boolean write(
                     StorageRequest request,
                     ComputationResult result) {
+
                 // No write occurs in this test.
+                return false;
             }
         };
 
-        ComputationAPI computation =
-                new ComputationAPIImplementation();
-
+        // Combined Conceptual API and Network API implementation.
         UserComputeAPI coordinator =
-                new UserComputeAPIImplementation(
-                        failingStorage, computation);
+                new ComputationAPIImplementation(failingStorage);
 
         DataSource source = new DataSource() {
             @Override
@@ -54,6 +55,7 @@ public class UserComputeExceptionIntegrationTest {
         };
 
         UserComputeRequest request = new UserComputeRequest() {
+
             @Override
             public DataSource getSource() {
                 return source;
@@ -82,6 +84,7 @@ public class UserComputeExceptionIntegrationTest {
         assertFalse(response.isSuccessful());
         assertFalse(response.isPrime());
         assertNotNull(response.getErrorMessage());
+
         assertTrue(
                 response.getErrorMessage().contains(
                         "Simulated storage failure"));

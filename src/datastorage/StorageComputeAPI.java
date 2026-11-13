@@ -1,3 +1,4 @@
+
 package datastorage;
 
 import compute.ComputationResult;
@@ -8,5 +9,5 @@ public interface StorageComputeAPI {
 
     IntegerData read(StorageRequest request);
 
-    void write(StorageRequest request, ComputationResult result);
+    boolean write(StorageRequest request, ComputationResult result);
 }

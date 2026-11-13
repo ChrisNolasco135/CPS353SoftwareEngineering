@@ -1,3 +1,4 @@
+
 package compute;
 
 import java.util.ArrayList;
@@ -24,20 +25,16 @@ public class ComputeEngineIntegrationTest {
         // Input: [1, 10, 25]
         List<Integer> input = Arrays.asList(1, 10, 25);
 
-        // Output list that the in-memory data store will write to
+        // Output list
         List<String> output = new ArrayList<>();
 
         // Test-only Process API / Data Store
         InMemoryStorageComputeAPI storageAPI =
                 new InMemoryStorageComputeAPI();
 
-        // Real Conceptual API implementation
-        ComputationAPI computationAPI =
-                new ComputationAPIImplementation();
-
-        // Real Network API implementation
+        // Combined Conceptual API and Network API
         UserComputeAPI userAPI =
-                new JobHandler(storageAPI, computationAPI);
+                new ComputationAPIImplementation(storageAPI);
 
         // In-memory input configuration
         InMemoryDataSource dataSource =
@@ -76,10 +73,10 @@ public class ComputeEngineIntegrationTest {
         UserComputeResponse response =
                 userAPI.compute(request);
 
-        // Eventually the compute engine should determine:
-        // 1  -> not prime
-        // 10 -> not prime
-        // 25 -> not prime
+        // Expected results:
+        // 1  -> false
+        // 10 -> false
+        // 25 -> false
         List<String> expectedOutput =
                 Arrays.asList("false", "false", "false");
 

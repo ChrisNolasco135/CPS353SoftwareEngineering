@@ -1,12 +1,13 @@
 
 package datastorage;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import compute.ComputationResult;
 import user.DataDestination;
@@ -15,13 +16,14 @@ import user.DataSource;
 public class StorageComputeAPIImplementation
         implements StorageComputeAPI {
 
-    private final List<String> outputResults = new ArrayList<>();
+    // Maintain separate output results for each user's destination.
+    private final ConcurrentMap<Path, List<String>> outputResults =
+            new ConcurrentHashMap<>();
 
     @Override
     public IntegerData read(StorageRequest request) {
 
         try {
-            // Validate the storage request.
             if (request == null) {
                 throw new NullPointerException(
                         "Storage request cannot be null");
@@ -80,11 +82,9 @@ public class StorageComputeAPIImplementation
                         }
 
                         try {
-                            numbers.add(
-                                    new BigInteger(trimmedValue));
+                            numbers.add(new BigInteger(trimmedValue));
 
                         } catch (NumberFormatException exception) {
-
                             throw new IllegalArgumentException(
                                     "Invalid integer in input file: "
                                             + trimmedValue,
@@ -98,8 +98,6 @@ public class StorageComputeAPIImplementation
                 throw new IllegalArgumentException(
                         "Input file contains no integers");
             }
-
-            outputResults.clear();
 
             return new IntegerData() {
 
@@ -145,7 +143,6 @@ public class StorageComputeAPIImplementation
             ComputationResult result) {
 
         try {
-            // Validate the storage request.
             if (request == null) {
                 throw new NullPointerException(
                         "Storage request cannot be null");
@@ -160,14 +157,9 @@ public class StorageComputeAPIImplementation
 
             String identifier = destination.getIdentifier();
 
-            if (identifier == null) {
-                throw new NullPointerException(
-                        "Output file identifier cannot be null");
-            }
-
-            if (identifier.isBlank()) {
+            if (identifier == null || identifier.isBlank()) {
                 throw new IllegalArgumentException(
-                        "Output file identifier cannot be blank");
+                        "Output file identifier cannot be null or blank");
             }
 
             if (result == null) {
@@ -175,30 +167,38 @@ public class StorageComputeAPIImplementation
                         "Computation result cannot be null");
             }
 
-            Path outputPath = Path.of(identifier);
+            Path outputPath = Path.of(identifier)
+                    .toAbsolutePath()
+                    .normalize();
 
-            // Validate the destination directory.
-            Path parent = outputPath.toAbsolutePath().getParent();
+            Path parent = outputPath.getParent();
 
             if (parent != null && !Files.isDirectory(parent)) {
                 throw new IllegalArgumentException(
                         "Output directory does not exist: " + parent);
             }
 
-            // Prepare output without modifying stored results yet.
-            List<String> newResults = new ArrayList<>(outputResults);
+            // Retrieve this destination's independent results list.
+            List<String> results = outputResults.computeIfAbsent(
+                    outputPath,
+                    ignored -> new ArrayList<>());
 
-            newResults.add(
-                    Boolean.toString(result.isPrime()));
+            // Synchronize writes to this particular destination.
+            synchronized (results) {
 
-            String output = String.join(",", newResults);
+                List<String> newResults = new ArrayList<>(results);
 
-            // Write output to the destination.
-            Files.writeString(outputPath, output);
+                newResults.add(
+                        Boolean.toString(result.isPrime()));
 
-            // Update stored results only after a successful write.
-            outputResults.clear();
-            outputResults.addAll(newResults);
+                String output = String.join(",", newResults);
+
+                Files.writeString(outputPath, output);
+
+                // Update results only after a successful write.
+                results.clear();
+                results.addAll(newResults);
+            }
 
             return true;
 

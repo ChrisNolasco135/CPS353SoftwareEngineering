@@ -48,11 +48,11 @@ public class TestMultiUser {
     @Test
     public void compareMultiAndSingleThreaded() throws Exception {
 
-        int nThreads = 4;
+        int threadCount = 4;
 
         List<TestUser> testUsers = new ArrayList<>();
 
-        for (int i = 0; i < nThreads; i++) {
+        for (int i = 0; i < threadCount; i++) {
             testUsers.add(new TestUser(coordinator));
         }
 
@@ -60,7 +60,7 @@ public class TestMultiUser {
         String singleThreadFilePrefix =
                 "testMultiUser.compareMultiAndSingleThreaded.test.singleThreadOut.tmp";
 
-        for (int i = 0; i < nThreads; i++) {
+        for (int i = 0; i < threadCount; i++) {
 
             File singleThreadedOut =
                     new File(singleThreadFilePrefix + i);
@@ -80,7 +80,7 @@ public class TestMultiUser {
         String multiThreadFilePrefix =
                 "testMultiUser.compareMultiAndSingleThreaded.test.multiThreadOut.tmp";
 
-        for (int i = 0; i < nThreads; i++) {
+        for (int i = 0; i < threadCount; i++) {
 
             File multiThreadedOut =
                     new File(multiThreadFilePrefix + i);
@@ -109,20 +109,20 @@ public class TestMultiUser {
 
         // Compare single-threaded and multi-threaded results.
         List<String> singleThreaded =
-                loadAllOutput(singleThreadFilePrefix, nThreads);
+                loadAllOutput(singleThreadFilePrefix, threadCount);
 
         List<String> multiThreaded =
-                loadAllOutput(multiThreadFilePrefix, nThreads);
+                loadAllOutput(multiThreadFilePrefix, threadCount);
 
         Assertions.assertEquals(singleThreaded, multiThreaded);
     }
 
     private List<String> loadAllOutput(
-            String prefix, int nThreads) throws IOException {
+            String prefix, int threadCount) throws IOException {
 
         List<String> result = new ArrayList<>();
 
-        for (int i = 0; i < nThreads; i++) {
+        for (int i = 0; i < threadCount; i++) {
 
             File multiThreadedOut =
                     new File(prefix + i);

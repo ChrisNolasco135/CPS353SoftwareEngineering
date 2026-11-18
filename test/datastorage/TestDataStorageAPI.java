@@ -67,4 +67,14 @@ public class TestDataStorageAPI {
 
         assertEquals("true", Files.readString(outputFile));
     }
+
+    @Test
+    public void testGrpcStorageComputeAPIExists() {
+
+        try (GrpcStorageComputeAPI storageAPI =
+                     new GrpcStorageComputeAPI("localhost", 50052)) {
+
+            assertNotNull(storageAPI);
+        }
+    }
 }

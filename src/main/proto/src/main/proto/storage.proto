@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package network.storage;
+
+option java_package = "network.storage";
+option java_multiple_files = true;
+option java_outer_classname = "StorageProtocol";
+
+service StorageService {
+  rpc Read (StorageReadRequest) returns (StorageReadResponse);
+  rpc Write (StorageWriteRequest) returns (StorageWriteResponse);
+  rpc Upload (StorageUploadRequest) returns (StorageUploadResponse);
+}
+
+message StorageReadRequest {
+  string source_identifier = 1;
+}
+
+message StorageReadResponse {
+  bool successful = 1;
+  repeated string numbers = 2;
+  string error_message = 3;
+}
+
+message StorageWriteRequest {
+  string destination_identifier = 1;
+  bool prime = 2;
+}
+
+message StorageWriteResponse {
+  bool successful = 1;
+  string error_message = 2;
+}
+
+message StorageUploadRequest {
+  repeated string numbers = 1;
+}
+
+message StorageUploadResponse {
+  bool successful = 1;
+  string source_identifier = 2;
+  string error_message = 3;
+}

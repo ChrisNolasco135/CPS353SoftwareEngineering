@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package network.grpc;
+
+option java_package = "network.grpc";
+option java_multiple_files = true;
+option java_outer_classname = "UserComputeProtocol";
+
+service UserComputeService {
+  rpc Compute (ComputeRequest) returns (ComputeResponse);
+}
+
+message ComputeRequest {
+  repeated string numbers = 1;
+}
+
+message ComputeResponse {
+  bool successful = 1;
+  repeated bool results = 2;
+  string error_message = 3;
+}

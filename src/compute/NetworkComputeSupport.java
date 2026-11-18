@@ -133,9 +133,6 @@ final class NetworkComputeSupport {
                 }
             }
 
-            // Write results in input order.
-            boolean lastResult = false;
-
             for (ComputationResult result : results) {
 
                 boolean writeSuccessful =
@@ -145,11 +142,15 @@ final class NetworkComputeSupport {
                     throw new IllegalStateException(
                             "Storage API failed to write output data");
                 }
-
-                lastResult = result.isPrime();
             }
 
-            return new UserComputeResponse(lastResult);
+        List<Boolean> booleanResults = new ArrayList<>();
+
+        for (ComputationResult result : results) {
+            booleanResults.add(result.isPrime());
+        }
+
+        return new UserComputeResponse(booleanResults);
 
         } catch (InterruptedException exception) {
 
